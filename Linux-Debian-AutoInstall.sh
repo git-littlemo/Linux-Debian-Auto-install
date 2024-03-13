@@ -117,7 +117,7 @@ wget -P ~/initrd https://${mirror_domain}/debian/dists/bookworm/main/installer-a
 wget -P $debian_install_dir https://${mirror_domain}/debian/dists/bookworm/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
 
 # 选择使用哪一个网卡
-read -e -p "网卡接口, 默认auto自动选择 : " -i "auto" interface
+read -e -p "选择网卡接口，如eth0，默认auto自动选择 : " -i "auto" interface
 # 如果留空，将其设置为 'auto'
 if [[ -z "$interface" ]]; then
   interface="auto"
@@ -125,12 +125,13 @@ fi
 echo
 echo
 
-echo '网卡配置，选择DHCP或是Static'
-read -e -p "使用DCHP自动配置吗 (Y/n):" -i "Y" network_conf_if
-if ["${network_conf_if,,}" == "y"]; then
-
-else
-
+echo '网卡配置，使用DHCP或是static'
+echo '如果系统网络不支持DHCP，则需要使用static静态配置，否则即便脚本运行成功，系统也无法完成安装！！！'
+read -e -p "使用DCHP自动配置吗 (Y/n):" -i "Y" static_conf
+if ["${static_conf,,}" == "y"]; then
+  read -e -p "外网IP地址: " static_conf_ipaddress
+  read -e -p "子网掩码: " -i "255.255.255.0" static_conf_netmask
+  read -e -p "网关地址: " static_conf_gateway
 fi
 echo
 echo
@@ -165,7 +166,7 @@ $preseed
 EOF
 echo
 echo '重新归档压缩中...'
-find . | cpio -H newc --create | gzip -9 > $debian_install_dir/initrd.gz && echo '归档压缩完成'
+find . | cpio -H newc --create | gzip -9 > ${debian_install_dir}/initrd.gz && echo '归档压缩完成'
 echo
 echo
 

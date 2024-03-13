@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # 网络设置
-if [ "${network_conf[0]}" = "1" ]; then
+if ["${static_conf,,}" == "y"]; then
   read -r -d '' network <<EOF
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note
 d-i netcfg/dhcp_options select Configure network manually
-d-i netcfg/get_ipaddress string ${network_conf[0]}
-d-i netcfg/get_netmask string ${network_conf[1]}
-d-i netcfg/get_gateway string ${network_conf[2]}
+d-i netcfg/get_ipaddress string ${static_conf_ipaddress}
+d-i netcfg/get_netmask string ${static_conf_netmask}
+d-i netcfg/get_gateway string ${static_conf_gateway}
 d-i netcfg/confirm_static boolean true
 EOF
 fi
@@ -24,9 +24,7 @@ if [ "$partition_table_type" = "gpt" ]; then
     partition="hd$boot_disk_number,gpt$boot_partition_number"
   fi
   
-  # 判断是否是UEFI引导
-  if [ -d "/sys/firmware/efi/efivars" ]; then
-    read -r -d '' partman <<'EOF'
+  read -r -d '' partman <<'EOF'
 # d-i partman-auto/disk string /dev/sda
 d-i partman-auto/method string regular
 d-i partman-partitioning/choose_label select gpt
@@ -38,6 +36,10 @@ d-i partman-lvm/confirm_nooverwrite boolean true
 d-i partman-auto/choose_recipe select boot-root
 d-i partman-auto/expert_recipe string                         \
       boot-root ::                                            \
+              1 1 1 free                                      \
+                      $bios_boot{ }                           \
+                      method{ biosgrub }                      \
+              .                                               \
               512 512 1024 free                               \
                       $iflabel{ gpt }                         \
                       $reusemethod{ }                         \
@@ -50,12 +52,12 @@ d-i partman-auto/expert_recipe string                         \
                       use_filesystem{ } filesystem{ ext4 }    \
                       mountpoint{ /boot }                     \
               .                                               \
-              1000 10000 1000000000 ext4                      \
+              1000 1000 -1 ext4                               \
                       method{ format } format{ }              \
                       use_filesystem{ } filesystem{ ext4 }    \
                       mountpoint{ / }                         \
               .                                               \
-              512 1024 200% linux-swap                        \
+              512 512 300% linux-swap                         \
                       method{ swap } format{ }                \
               .
 d-i partman/confirm_write_new_label boolean true
@@ -63,15 +65,6 @@ d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
 EOF
-
-  else
-    echo ''
-    echo ''
-    echo -e "本脚本暂不支持 Hybrid MBR 混合分区表!"
-    echo ''
-    echo ''
-    exit 1
-  fi
   
 else
   # 对于MBR分区表的原有处理
@@ -97,13 +90,13 @@ d-i partman-auto/expert_recipe string                         \
                       use_filesystem{ } filesystem{ ext4 }    \
                       mountpoint{ /boot }                     \
               .                                               \
-              1000 10000 1000000000 ext4                      \
+              1000 1000 1000000000 ext4                       \
                       $primary{ }                             \
                       method{ format } format{ }              \
                       use_filesystem{ } filesystem{ ext4 }    \
                       mountpoint{ / }                         \
               .                                               \
-              512 1024 200% linux-swap                        \
+              512 512 300% linux-swap                         \
                       $primary{ }                             \
                       method{ swap } format{ }                \
               .

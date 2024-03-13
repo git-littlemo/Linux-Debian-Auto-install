@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 网络设置
-if ["${static_conf,,}" == "y"]; then
+if [ "${static_conf,,}" == "y" ]; then
   read -r -d '' network <<EOF
 d-i netcfg/disable_autoconfig boolean true
 d-i netcfg/dhcp_failed note

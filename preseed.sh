@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# 网络设置
+if [ "${network_conf[0]}" = "1" ]; then
+  read -r -d '' network <<EOF
+d-i netcfg/disable_autoconfig boolean true
+d-i netcfg/dhcp_failed note
+d-i netcfg/dhcp_options select Configure network manually
+d-i netcfg/get_ipaddress string ${network_conf[0]}
+d-i netcfg/get_netmask string ${network_conf[1]}
+d-i netcfg/get_gateway string ${network_conf[2]}
+d-i netcfg/confirm_static boolean true
+EOF
+fi
+
 # 检测分区表类型
 partition_table_type=$(fdisk -l $boot_device 2>/dev/null | grep 'Disklabel type' | awk '{print $3}')
 
@@ -110,7 +123,8 @@ d-i keyboard-configuration/xkb-keymap select us
 # 网络设置
 d-i netcfg/choose_interface select ${interface}
 d-i netcfg/get_hostname string debian
-d-i netcfg/get_nameservers string 8.8.8.8
+d-i netcfg/get_nameservers string 8.8.8.8 1.1.1.1
+${network}
 # 设置镜像源
 d-i mirror/country string manual
 d-i mirror/http/hostname string ${mirror_domain}

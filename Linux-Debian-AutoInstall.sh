@@ -116,11 +116,21 @@ rm -fr ~/initrd && mkdir ~/initrd
 wget -P ~/initrd https://${mirror_domain}/debian/dists/bookworm/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
 wget -P $debian_install_dir https://${mirror_domain}/debian/dists/bookworm/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
 
-# 设置使用哪一个网卡
-read -e -p "网卡名称, 默认auto自动设置 : " -i "auto" interface
+# 选择使用哪一个网卡
+read -e -p "网卡接口, 默认auto自动选择 : " -i "auto" interface
 # 如果留空，将其设置为 'auto'
 if [[ -z "$interface" ]]; then
   interface="auto"
+fi
+echo
+echo
+
+echo '网卡配置，选择DHCP或是Static'
+read -e -p "使用DCHP自动配置吗 (Y/n):" -i "Y" network_conf_if
+if ["${network_conf_if,,}" == "y"]; then
+
+else
+
 fi
 echo
 echo
@@ -168,7 +178,7 @@ exec tail -n +3 \$0
 # the 'exec tail' line above.
 menuentry 'debian-netboot-install' {
 set root=${partition}
-linux ${boot_mout_dir}debian-netboot-install/linux auto=true priority=critical netcfg/choose_interface=${interface}
+linux ${boot_mout_dir}debian-netboot-install/linux auto=true priority=critical
 initrd ${boot_mout_dir}debian-netboot-install/initrd.gz
 }
 EOF

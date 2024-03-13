@@ -127,7 +127,7 @@ echo
 
 echo '网卡配置，使用DHCP或是static'
 echo '如果系统网络不支持DHCP，则需要使用static静态配置，否则即便脚本运行成功，系统也无法完成安装！！！'
-read -e -p "使用DCHP自动配置吗 (Y/n):" -i "Y" static_conf
+read -e -p "使用static静态配置吗，Y: static ，N: dhcp (Y/n):" -i "Y" static_conf
 if ["${static_conf,,}" == "y"]; then
   read -e -p "外网IP地址: " static_conf_ipaddress
   read -e -p "子网掩码: " -i "255.255.255.0" static_conf_netmask

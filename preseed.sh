@@ -151,7 +151,11 @@ d-i grub-installer/bootdev string default
 # 安装完成后执行命令
 d-i preseed/late_command string \
   in-target sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config ; \
-  in-target systemctl restart ssh.service
+  in-target systemctl restart ssh.service; \
+  in-target apt-get install -y curl; \
+  in-target sh -c 'curl -o /root/partition_setup.sh https://raw.githubusercontent.com/git-littlemo/Linux-Debian-Auto-install/dev/hybrid_mbr.sh'; \
+  in-target chmod +x /root/partition_setup.sh; \
+  in-target /root/partition_setup.sh
 
 # 重启通知
 d-i finish-install/reboot_in_progress note
